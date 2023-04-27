@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option csharp_namespace = "Meteor.Gateway.Infrastructure.Grpc";
+
+import "google/protobuf/timestamp.proto";
+
+package meteor.sessions;
+
+message Session {
+  string id = 1;
+  string token = 2;
+  int32 customer_id = 3;
+  int32 employee_id = 4;
+  string device_name = 5;
+  string ip_address = 6;
+  google.protobuf.Timestamp create_date = 7;
+  google.protobuf.Timestamp last_refresh_date = 8;
+  google.protobuf.Timestamp expire_date = 9;
+}
+
+message StartSessionRequest {
+  string username = 1;
+  string password = 2;
+  string domain = 3;
+  string ip_address = 4;
+  string device_name = 5;
+}
+
+message SessionIdentifier {
+  oneof identifier {
+    string id = 1;
+    string token = 2;
+  }
+}
+
+message StringResponse {
+  string message = 1;
+}
+
+service SessionsService {
+  rpc StartSession(StartSessionRequest) returns (Session);
+  rpc RefreshToken(SessionIdentifier) returns (Session);
+  rpc TerminateSession(SessionIdentifier) returns (StringResponse);
+}
