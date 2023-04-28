@@ -1,17 +1,41 @@
 using System.Text;
+using Grpc.Core;
+using Mapster;
+using MapsterMapper;
+using Meteor.Gateway.Api.Middleware;
+using Meteor.Gateway.Core.Contracts;
+using Meteor.Gateway.Core.Services;
+using Meteor.Gateway.Core.Services.Abstractions;
+using Meteor.Gateway.Infrastructure.Contracts;
+using Meteor.Gateway.Infrastructure.Grpc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var azureAppConfigurationConnectionString = builder.Configuration
+    .GetValue<string>("ConnectionStrings:AzureAppConfiguration");
+
+if (!string.IsNullOrEmpty(azureAppConfigurationConnectionString))
+{
+    builder.Configuration.AddAzureAppConfiguration(options =>
+        options
+            .Connect(azureAppConfigurationConnectionString)
+            .UseFeatureFlags()
+            .Select(KeyFilter.Any)
+            .Select(KeyFilter.Any, builder.Environment.EnvironmentName)
+            .Select(KeyFilter.Any, $"{builder.Environment.EnvironmentName}-Gateway")
+    );
+}
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-
 var jwtSection = builder.Configuration.GetSection("Security:Jwt");
-var jwtSecretKey = jwtSection.GetValue<string>("");
+var jwtSecretKey = jwtSection.GetValue<string>("SecretKey");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -26,6 +50,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(jwtSecretKey ?? "")
             ),
         };
+
+        if (options.TokenValidationParameters.ValidateIssuer)
+        {
+            options.TokenValidationParameters.ValidIssuer = jwtSection.GetValue<string>("Issuer");
+        }
+
+        if (options.TokenValidationParameters.ValidateAudience)
+        {
+            options.TokenValidationParameters.ValidAudience = jwtSection.GetValue<string>("Audience");
+        }
     });
 
 builder.Services.AddSwaggerGen(options =>
@@ -62,6 +96,27 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddGrpcClient<SessionsService.SessionsServiceClient>(options =>
+{
+    var url = builder.Configuration.GetValue<string>("Routing:SessionsServiceUrl") ?? string.Empty;
+    options.Address = new Uri(url);
+    if (options.Address.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase))
+    {
+        options.ChannelOptionsActions.Add(opt => opt.Credentials = ChannelCredentials.Insecure);
+    }
+});
+
+var mapperConfig = new TypeAdapterConfig();
+mapperConfig.Apply(new Meteor.Gateway.Infrastructure.Mapping.MappingRegister());
+builder.Services.AddSingleton<IMapper>(new Mapper(mapperConfig));
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
+builder.Services.AddScoped<ISessionsClient, GrpcSessionsClient>();
+
+builder.Services.AddScoped<ExceptionsMiddleware>();
+builder.Services.AddSingleton<RequestBufferingMiddleware>();
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -72,10 +127,9 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = "swagger";
 });
 
+app.UseMiddleware<RequestBufferingMiddleware>();
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
+app.UseMiddleware<ExceptionsMiddleware>();
 app.MapControllers();
-
 app.Run();

@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CCD0385D-2AA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meteor.Gateway.Api", "src\Meteor.Gateway.Api\Meteor.Gateway.Api.csproj", "{C26609F9-2E7C-4080-984C-D00E75A9186A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meteor.Gateway.Infrastructure", "src\Meteor.Gateway.Infrastructure\Meteor.Gateway.Infrastructure.csproj", "{0838F05B-618D-49E0-996F-1D011FA960EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meteor.Gateway.Core", "src\Meteor.Gateway.Core\Meteor.Gateway.Core.csproj", "{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,11 +20,21 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C26609F9-2E7C-4080-984C-D00E75A9186A} = {CCD0385D-2AA7-454D-850E-BC4BCABD7DB5}
+		{0838F05B-618D-49E0-996F-1D011FA960EC} = {CCD0385D-2AA7-454D-850E-BC4BCABD7DB5}
+		{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D} = {CCD0385D-2AA7-454D-850E-BC4BCABD7DB5}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C26609F9-2E7C-4080-984C-D00E75A9186A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C26609F9-2E7C-4080-984C-D00E75A9186A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C26609F9-2E7C-4080-984C-D00E75A9186A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C26609F9-2E7C-4080-984C-D00E75A9186A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0838F05B-618D-49E0-996F-1D011FA960EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0838F05B-618D-49E0-996F-1D011FA960EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0838F05B-618D-49E0-996F-1D011FA960EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0838F05B-618D-49E0-996F-1D011FA960EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C28B186C-BB9E-4EB8-BF9A-716AEC2A6E9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
