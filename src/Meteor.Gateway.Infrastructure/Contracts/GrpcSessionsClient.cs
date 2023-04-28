@@ -27,9 +27,9 @@ public class GrpcSessionsClient : ISessionsClient
             var session = await _grpcClient.StartSessionAsync(request);
             return _mapper.Map<Core.Models.Session>(session);
         }
-        catch (RpcException e) when(e.StatusCode == StatusCode.InvalidArgument)
+        catch (RpcException e) when(e.StatusCode is StatusCode.InvalidArgument or StatusCode.NotFound)
         {
-            throw new MeteorException(e.Message, e);
+            throw new MeteorException(e.Status.Detail, e);
         }
     }
 
@@ -45,11 +45,11 @@ public class GrpcSessionsClient : ISessionsClient
         }
         catch (RpcException e) when (e.StatusCode == StatusCode.InvalidArgument)
         {
-            throw new MeteorException(e.Message, e);
+            throw new MeteorException(e.Status.Detail, e);
         }
         catch (RpcException e) when (e.StatusCode == StatusCode.NotFound)
         {
-            throw new MeteorNotFoundException(e.Message, e);
+            throw new MeteorNotFoundException(e.Status.Detail, e);
         }
     }
 }
