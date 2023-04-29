@@ -2,13 +2,16 @@ using System.Text;
 using Grpc.Core;
 using Mapster;
 using MapsterMapper;
+using Meteor.Common.Messaging.DependencyInjection.Extensions;
 using Meteor.Gateway.Api.Middleware;
 using Meteor.Gateway.Core.Contracts;
+using Meteor.Gateway.Core.Dtos;
 using Meteor.Gateway.Core.Services;
 using Meteor.Gateway.Core.Services.Abstractions;
 using Meteor.Gateway.Infrastructure.Contracts;
 using Meteor.Gateway.Infrastructure.Grpc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -33,6 +36,18 @@ if (!string.IsNullOrEmpty(azureAppConfigurationConnectionString))
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+var serviceBusConnectionString = builder.Configuration.GetConnectionString("AzureServiceBus") ?? string.Empty;
+builder.Services.AddAzureClients(azureBuilder =>
+{
+    azureBuilder.AddServiceBusClient(serviceBusConnectionString);
+});
+
+builder.Services.AddServiceBusPublisher<MigrationsTriggerDto>(options =>
+{
+    options.SenderName = "Gateway";
+    options.TopicName = "migrations";
+});
 
 var jwtSection = builder.Configuration.GetSection("Security:Jwt");
 var jwtSecretKey = jwtSection.GetValue<string>("SecretKey");
@@ -113,6 +128,7 @@ builder.Services.AddSingleton<IMapper>(new Mapper(mapperConfig));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
 builder.Services.AddScoped<ISessionsClient, GrpcSessionsClient>();
+builder.Services.AddScoped<IMigrationsTriggerService, MigrationsTriggerService>();
 
 builder.Services.AddScoped<ExceptionsMiddleware>();
 builder.Services.AddSingleton<RequestBufferingMiddleware>();
